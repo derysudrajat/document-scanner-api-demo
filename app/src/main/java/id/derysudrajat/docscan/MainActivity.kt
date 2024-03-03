@@ -34,8 +34,17 @@ class MainActivity : ComponentActivity() {
             DocumenScannerTheme {
                 var resultUri by remember { mutableStateOf("".toUri()) }
                 var documentScanUiState by remember { mutableStateOf(DocumentScanUiState.Empty) }
-                val scannerLauncher =
-                    rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+
+                /**
+                 * [scannerLauncher] is launcher for start scanning using intentSender from [scanner]
+                 * if [scannerLauncher] has [RESULT_OK] then will send result data of [GmsDocumentScanningResult]
+                 * [GmsDocumentScanningResult] has two result are:
+                 * [GmsDocumentScanningResult.getPages] that give list of document that already scan also the image uri
+                 * [GmsDocumentScanningResult.getPdf] that give pdf that saved into cache file
+                 */
+                val scannerLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.StartIntentSenderForResult()
+                ) { result ->
                         if (result.resultCode == RESULT_OK) {
                             documentScanUiState = documentScanUiState.copy(isResultOk = true)
                             val resultDocs =
@@ -65,6 +74,10 @@ class MainActivity : ComponentActivity() {
                 documentScanUiState.onScanNewDoc = {
                     documentScanUiState = documentScanUiState.copy(isResultOk = false)
                     resultUri = "".toUri()
+                    /**
+                     * [scanner] call getStartScanIntent to get intentSender
+                     * and intent sender will used by [scannerLauncher] to start scanning document
+                     */
                     scanner.getStartScanIntent(this)
                         .addOnSuccessListener { intentSender ->
                             scannerLauncher.launch(
@@ -78,6 +91,11 @@ class MainActivity : ComponentActivity() {
                         }
                 }
                 documentScanUiState.onSharePdf = { name, uri ->
+                    /**
+                     * Mechanisms for share pdf is to check [resultUri] is available or not
+                     * if [resultUri] is not blank it will call [sharePdf] with its [resultUri]
+                     * if not it will call [saveFile] first to get [resultUri] then will share using [sharePdf]
+                     */
                     if (resultUri.toString().isNotBlank()) sharePdf(this, resultUri)
                     else saveFile(this, name, uri) { result ->
                         resultUri = result
@@ -86,6 +104,9 @@ class MainActivity : ComponentActivity() {
                 }
 
                 documentScanUiState.onDownloadDocument = { name, uri ->
+                    /**
+                     * to [saveFile] it require [Context], file name, also external uri or cache uri
+                     */
                     saveFile(this, name, uri) { result ->
                         Toast.makeText(this, "$name.pdf is successful saved", Toast.LENGTH_SHORT)
                             .show()
