@@ -1,4 +1,8 @@
+<img src = "https://github.com/derysudrajat/document-scanner-api-demo/assets/32610660/fb532b41-5bd5-430b-ab06-68c8300af397" width = 10%>
+
 # Document Scanner Api - Showcase App
+Showcase app that implement document scanner ml-kit api
+
 ## Screenshot
 <table>
   <tr>
